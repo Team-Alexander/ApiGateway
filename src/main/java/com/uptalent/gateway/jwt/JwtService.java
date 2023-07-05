@@ -2,7 +2,6 @@ package com.uptalent.gateway.jwt;
 
 import com.uptalent.gateway.converter.PublicKeyConverter;
 import com.uptalent.gateway.model.PublicKeyDTO;
-import io.github.resilience4j.retry.annotation.Retry;
 import io.micrometer.common.util.StringUtils;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -79,7 +78,6 @@ public class JwtService {
         this.jwtDecoder = NimbusJwtDecoder.withPublicKey((RSAPublicKey) publicKey).build();
     }
 
-    @Retry(name = "default")
     private Mono<PublicKeyDTO> fetchPublicKey() {
         return webClientBuilder.build()
                 .get()
