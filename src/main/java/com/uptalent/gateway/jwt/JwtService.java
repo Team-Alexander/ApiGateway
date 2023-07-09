@@ -95,7 +95,7 @@ public class JwtService {
         }
     }
 
-    @Scheduled(fixedDelay = 2 * 3600 * 1000)
+    @Scheduled(cron = "0 0 0 * * MON")
     private void clearJtiMap() {
         log.info("Clearing jti map");
         jtiMap.clear();
