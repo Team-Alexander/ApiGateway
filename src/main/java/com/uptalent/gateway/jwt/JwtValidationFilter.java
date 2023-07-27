@@ -13,7 +13,9 @@ import org.springframework.stereotype.Component;
 import org.springframework.web.server.ServerWebExchange;
 import reactor.core.publisher.Mono;
 
-import static com.uptalent.gateway.jwt.JwtConstants.BEARER_PREFIX;
+import java.util.Map;
+
+import static com.uptalent.gateway.jwt.JwtConstants.*;
 
 @Component
 @Slf4j
@@ -26,19 +28,29 @@ public class JwtValidationFilter implements GlobalFilter {
     public Mono<Void> filter(ServerWebExchange exchange, GatewayFilterChain chain) {
         ServerHttpRequest request = exchange.getRequest();
         String authorizationHeader = request.getHeaders().getFirst(HttpHeaders.AUTHORIZATION);
+
         if (authorizationHeader != null && authorizationHeader.startsWith(BEARER_PREFIX)) {
             String token = authorizationHeader.substring(BEARER_PREFIX.length());
-            return jwtService.isTokenValid(token)
-                    .flatMap(isValid -> {
-                        if (!isValid) {
-                            throw new InvalidTokenException();
-                        }
-                        return chain.filter(exchange);
-                    })
+
+            return jwtService.validateTokenAndExtractUserInfo(token)
+                    .flatMap(userInfo -> updateRequestAndChainFilter(exchange, chain, userInfo))
                     .switchIfEmpty(chain.filter(exchange));
         }
+
         return chain.filter(exchange);
     }
+
+    private Mono<Void> updateRequestAndChainFilter(ServerWebExchange exchange, GatewayFilterChain chain, Map<String, String> userInfo) {
+        if (userInfo.isEmpty()) {
+            throw new InvalidTokenException();
+        }
+        ServerHttpRequest updatedRequest = exchange.getRequest().mutate()
+                .headers(headers -> {
+                    headers.set(USER_ID_KEY, userInfo.get(USER_ID_KEY));
+                    headers.set(USER_ROLE_KEY, userInfo.get(USER_ROLE_KEY));
+                })
+                .build();
+
+        return chain.filter(exchange.mutate().request(updatedRequest).build());
+    }
 }
-
-
