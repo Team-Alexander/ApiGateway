@@ -20,7 +20,12 @@ import java.security.PublicKey;
 import java.security.interfaces.RSAPublicKey;
 import java.security.spec.InvalidKeySpecException;
 import java.time.Instant;
+import java.util.Collections;
+import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
+
+import static com.uptalent.gateway.jwt.JwtConstants.USER_ID_KEY;
+import static com.uptalent.gateway.jwt.JwtConstants.USER_ROLE_KEY;
 
 @Service
 @Slf4j
@@ -32,21 +37,27 @@ public class JwtService {
     @Value("${auth-service.public-key-url}")
     private String publicKeyUrl;
 
-    public Mono<Boolean> isTokenValid(String token) {
+    public Mono<Map<String, String>> validateTokenAndExtractUserInfo(String token) {
         return getPublicKey(token)
-                .flatMap(publicKey -> {
-                    try {
-                        if (publicKey != null) {
-                            Jwt jwt = jwtDecoder.decode(token);
-                            return Mono.just(StringUtils.isNotEmpty(jwt.getSubject()) && !isTokenExpired(jwt));
-                        } else {
-                            return Mono.just(false);
-                        }
-                    } catch (BadJwtException ex) {
-                        return Mono.just(false);
-                    }
-                })
-                .defaultIfEmpty(false);
+                .flatMap(publicKey -> decodeJwtExtractUserInfo(token))
+                .defaultIfEmpty(Collections.emptyMap());
+    }
+
+    private Mono<Map<String, String>> decodeJwtExtractUserInfo(String token) {
+        try {
+            Jwt jwt = jwtDecoder.decode(token);
+            if (StringUtils.isNotBlank(jwt.getSubject()) && !isTokenExpired(jwt)) {
+                Map<String, String> userMap = Map.of(
+                        USER_ID_KEY, jwt.getSubject(),
+                        USER_ROLE_KEY, jwt.getClaimAsString("role")
+                );
+                return Mono.just(userMap);
+            }
+
+            return Mono.empty();
+        } catch (BadJwtException ex) {
+            return Mono.empty();
+        }
     }
 
     private Mono<PublicKey> getPublicKey(String token) {
