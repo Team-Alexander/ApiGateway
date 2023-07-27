@@ -5,6 +5,7 @@ import com.uptalent.gateway.exception.InvalidTokenException;
 import com.uptalent.gateway.model.ErrorResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.SneakyThrows;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.cloud.gateway.support.NotFoundException;
 import org.springframework.core.annotation.Order;
 import org.springframework.core.io.buffer.DataBuffer;
@@ -25,6 +26,7 @@ import static com.uptalent.gateway.exception.ExceptionConstant.*;
 
 @Component
 @Order(-2)
+@Slf4j
 @RequiredArgsConstructor
 public class GlobalExceptionHandler implements WebExceptionHandler {
     private final ObjectMapper objectMapper;
@@ -42,6 +44,7 @@ public class GlobalExceptionHandler implements WebExceptionHandler {
                 || ex.getCause() instanceof ConnectException){
             return error(exchange, HttpStatus.SERVICE_UNAVAILABLE, SERVICE_UNAVAILABLE_MESSAGE);
         } else {
+            log.error("Internal Server Error", ex);
             return error(exchange, HttpStatus.INTERNAL_SERVER_ERROR, INTERNAL_SERVER_ERROR_MESSAGE);
         }
     }
