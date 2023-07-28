@@ -1,4 +1,4 @@
-package com.uptalent.gateway.config;
+package io.github.uptalent.gateway.config;
 
 import org.springframework.cloud.client.loadbalancer.LoadBalanced;
 import org.springframework.context.annotation.Bean;

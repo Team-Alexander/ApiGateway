@@ -1,6 +1,6 @@
-package com.uptalent.gateway.converter;
+package io.github.uptalent.gateway.converter;
 
-import com.uptalent.gateway.model.PublicKeyDTO;
+import io.github.uptalent.gateway.model.PublicKeyDTO;
 
 import java.security.KeyFactory;
 import java.security.NoSuchAlgorithmException;

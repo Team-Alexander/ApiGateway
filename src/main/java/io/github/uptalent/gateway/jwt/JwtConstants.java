@@ -1,4 +1,4 @@
-package com.uptalent.gateway.jwt;
+package io.github.uptalent.gateway.jwt;
 
 public final class JwtConstants {
     private JwtConstants(){}

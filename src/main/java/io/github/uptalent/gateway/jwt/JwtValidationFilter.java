@@ -1,6 +1,6 @@
-package com.uptalent.gateway.jwt;
+package io.github.uptalent.gateway.jwt;
 
-import com.uptalent.gateway.exception.InvalidTokenException;
+import io.github.uptalent.gateway.exception.InvalidTokenException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.http.HttpHeaders;
@@ -15,8 +15,6 @@ import reactor.core.publisher.Mono;
 
 import java.util.Map;
 
-import static com.uptalent.gateway.jwt.JwtConstants.*;
-
 @Component
 @Slf4j
 @RequiredArgsConstructor
@@ -29,8 +27,8 @@ public class JwtValidationFilter implements GlobalFilter {
         ServerHttpRequest request = exchange.getRequest();
         String authorizationHeader = request.getHeaders().getFirst(HttpHeaders.AUTHORIZATION);
 
-        if (authorizationHeader != null && authorizationHeader.startsWith(BEARER_PREFIX)) {
-            String token = authorizationHeader.substring(BEARER_PREFIX.length());
+        if (authorizationHeader != null && authorizationHeader.startsWith(JwtConstants.BEARER_PREFIX)) {
+            String token = authorizationHeader.substring(JwtConstants.BEARER_PREFIX.length());
 
             return jwtService.validateTokenAndExtractUserInfo(token)
                     .flatMap(userInfo -> updateRequestAndChainFilter(exchange, chain, userInfo))
@@ -46,8 +44,8 @@ public class JwtValidationFilter implements GlobalFilter {
         }
         ServerHttpRequest updatedRequest = exchange.getRequest().mutate()
                 .headers(headers -> {
-                    headers.set(USER_ID_KEY, userInfo.get(USER_ID_KEY));
-                    headers.set(USER_ROLE_KEY, userInfo.get(USER_ROLE_KEY));
+                    headers.set(JwtConstants.USER_ID_KEY, userInfo.get(JwtConstants.USER_ID_KEY));
+                    headers.set(JwtConstants.USER_ROLE_KEY, userInfo.get(JwtConstants.USER_ROLE_KEY));
                 })
                 .build();
 

@@ -1,4 +1,4 @@
-package com.uptalent.gateway.model;
+package io.github.uptalent.gateway.model;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;
