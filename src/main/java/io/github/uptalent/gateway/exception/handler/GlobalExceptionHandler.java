@@ -1,8 +1,9 @@
-package com.uptalent.gateway.exception.handler;
+package io.github.uptalent.gateway.exception.handler;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.uptalent.gateway.exception.InvalidTokenException;
-import com.uptalent.gateway.model.ErrorResponse;
+import io.github.uptalent.gateway.exception.InvalidTokenException;
+import io.github.uptalent.gateway.model.ErrorResponse;
+import io.github.uptalent.gateway.exception.ExceptionConstant;
 import lombok.RequiredArgsConstructor;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
@@ -22,8 +23,6 @@ import reactor.core.publisher.Mono;
 
 import java.net.ConnectException;
 
-import static com.uptalent.gateway.exception.ExceptionConstant.*;
-
 @Component
 @Order(-2)
 @Slf4j
@@ -39,13 +38,13 @@ public class GlobalExceptionHandler implements WebExceptionHandler {
         } else if ((ex instanceof ResponseStatusException
                 && ((ResponseStatusException) ex).getStatusCode() == HttpStatus.NOT_FOUND)
                 || ex instanceof NotFoundException) {
-            return error(exchange, HttpStatus.NOT_FOUND, NOT_FOUND_MESSAGE);
+            return error(exchange, HttpStatus.NOT_FOUND, ExceptionConstant.NOT_FOUND_MESSAGE);
         } else if(ex instanceof WebClientRequestException || ex instanceof ConnectException
                 || ex.getCause() instanceof ConnectException){
-            return error(exchange, HttpStatus.SERVICE_UNAVAILABLE, SERVICE_UNAVAILABLE_MESSAGE);
+            return error(exchange, HttpStatus.SERVICE_UNAVAILABLE, ExceptionConstant.SERVICE_UNAVAILABLE_MESSAGE);
         } else {
             log.error("Internal Server Error", ex);
-            return error(exchange, HttpStatus.INTERNAL_SERVER_ERROR, INTERNAL_SERVER_ERROR_MESSAGE);
+            return error(exchange, HttpStatus.INTERNAL_SERVER_ERROR, ExceptionConstant.INTERNAL_SERVER_ERROR_MESSAGE);
         }
     }
 

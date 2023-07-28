@@ -1,4 +1,4 @@
-package com.uptalent.gateway.exception;
+package io.github.uptalent.gateway.exception;
 
 public final class ExceptionConstant {
     private ExceptionConstant(){}
