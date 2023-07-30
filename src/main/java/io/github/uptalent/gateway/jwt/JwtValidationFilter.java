@@ -1,6 +1,5 @@
 package io.github.uptalent.gateway.jwt;
 
-import io.github.uptalent.gateway.exception.InvalidTokenException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.http.HttpHeaders;
@@ -39,9 +38,6 @@ public class JwtValidationFilter implements GlobalFilter {
     }
 
     private Mono<Void> updateRequestAndChainFilter(ServerWebExchange exchange, GatewayFilterChain chain, Map<String, String> userInfo) {
-        if (userInfo.isEmpty()) {
-            throw new InvalidTokenException();
-        }
         ServerHttpRequest updatedRequest = exchange.getRequest().mutate()
                 .headers(headers -> {
                     headers.set(JwtConstants.USER_ID_KEY, userInfo.get(JwtConstants.USER_ID_KEY));
