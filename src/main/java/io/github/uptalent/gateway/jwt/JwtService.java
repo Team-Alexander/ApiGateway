@@ -1,12 +1,14 @@
 package io.github.uptalent.gateway.jwt;
 
+import com.google.common.cache.Cache;
+import com.google.common.cache.CacheBuilder;
 import io.github.uptalent.gateway.converter.PublicKeyConverter;
+import io.github.uptalent.gateway.exception.InvalidTokenException;
 import io.github.uptalent.gateway.model.PublicKeyDTO;
 import io.micrometer.common.util.StringUtils;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.security.oauth2.jwt.BadJwtException;
 import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.security.oauth2.jwt.JwtDecoder;
@@ -21,20 +23,22 @@ import java.security.interfaces.RSAPublicKey;
 import java.security.spec.InvalidKeySpecException;
 import java.time.Instant;
 import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.TimeUnit;
 
-import static io.github.uptalent.gateway.jwt.JwtConstants.USER_ID_KEY;
-import static io.github.uptalent.gateway.jwt.JwtConstants.USER_ROLE_KEY;
+import static io.github.uptalent.gateway.jwt.JwtConstants.*;
 
 @Service
 @Slf4j
 @RequiredArgsConstructor
 public class JwtService {
-    private final WebClient.Builder webClientBuilder;
     private JwtDecoder jwtDecoder;
-    private final ConcurrentHashMap<String, PublicKey> jtiMap = new ConcurrentHashMap<>();
     @Value("${auth-service.public-key-url}")
     private String publicKeyUrl;
+    private final WebClient.Builder webClientBuilder;
+    private final Cache<String, PublicKey> jtiMap = CacheBuilder.newBuilder()
+            .expireAfterWrite(EXPIRED_TIME_DAYS, TimeUnit.DAYS)
+            .maximumSize(MAX_CACHE_SIZE)
+            .build();
 
     public Mono<Map<String, String>> validateTokenAndExtractUserInfo(String token) {
         return getPublicKey(token)
@@ -47,9 +51,9 @@ public class JwtService {
                             }
                         }
                     } catch (BadJwtException ex) {
-                        return Mono.empty();
+                        return Mono.error(new InvalidTokenException());
                     }
-                    return Mono.empty();
+                    return Mono.error(new InvalidTokenException());
                 });
     }
 
@@ -61,7 +65,7 @@ public class JwtService {
     }
 
     private Mono<PublicKey> getPublicKey(String token) {
-        PublicKey cachedPublicKey = jtiMap.get(getJwtId(token));
+        PublicKey cachedPublicKey = jtiMap.asMap().get(getJwtId(token));
         if (cachedPublicKey != null) {
             return Mono.just(cachedPublicKey);
         } else {
@@ -104,11 +108,5 @@ public class JwtService {
         } catch (NullPointerException | BadJwtException ex) {
             return "";
         }
-    }
-
-    @Scheduled(cron = "0 0 0 * * MON")
-    private void clearJtiMap() {
-        log.info("Clearing jti map");
-        jtiMap.clear();
     }
 }
