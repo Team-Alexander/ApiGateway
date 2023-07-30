@@ -36,7 +36,7 @@ public class JwtService {
     private String publicKeyUrl;
     private final WebClient.Builder webClientBuilder;
     private final Cache<String, PublicKey> jtiMap = CacheBuilder.newBuilder()
-            .expireAfterWrite(EXPIRED_TIME_DAYS, TimeUnit.MINUTES)
+            .expireAfterWrite(EXPIRED_TIME_DAYS, TimeUnit.DAYS)
             .maximumSize(MAX_CACHE_SIZE)
             .build();
 
