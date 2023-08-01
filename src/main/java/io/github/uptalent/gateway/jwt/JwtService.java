@@ -9,6 +9,7 @@ import io.micrometer.common.util.StringUtils;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.security.oauth2.jwt.BadJwtException;
 import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.security.oauth2.jwt.JwtDecoder;
@@ -35,12 +36,18 @@ public class JwtService {
     @Value("${auth-service.public-key-url}")
     private String publicKeyUrl;
     private final WebClient.Builder webClientBuilder;
+    private final RedisTemplate<String, String> redisTemplate;
     private final Cache<String, PublicKey> jtiMap = CacheBuilder.newBuilder()
             .expireAfterWrite(EXPIRED_TIME_DAYS, TimeUnit.DAYS)
             .maximumSize(MAX_CACHE_SIZE)
             .build();
 
     public Mono<Map<String, String>> validateTokenAndExtractUserInfo(String token) {
+        String key = "blacklist:" + token.toLowerCase();
+        boolean isBlacklisted = Boolean.TRUE.equals(redisTemplate.hasKey(key));
+        if(isBlacklisted)
+            throw new InvalidTokenException();
+
         return getPublicKey(token)
                 .flatMap(publicKey -> {
                     try {
