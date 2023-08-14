@@ -20,12 +20,12 @@ spring:
       default-filters:
         - name: Retry
           args:
-            retries: 5
+            retries: 10
             statuses: SERVICE_UNAVAILABLE
             methods: GET,POST,PATCH,PUT,DELETE
             backoff:
-              firstBackoff: 1000ms
-              maxBackoff: 60000ms
+              firstBackoff: 2000ms
+              maxBackoff: 120000ms
               factor: 2
               basedOnPreviousValue: true
       routes:
