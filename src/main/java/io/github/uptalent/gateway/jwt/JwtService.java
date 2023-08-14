@@ -41,9 +41,10 @@ public class JwtService {
             .expireAfterWrite(EXPIRED_TIME_DAYS, TimeUnit.DAYS)
             .maximumSize(MAX_CACHE_SIZE)
             .build();
+    private static final String JWT_BLACKLIST_KEY = "jwt_blacklist:";
 
     public Mono<Map<String, String>> validateTokenAndExtractUserInfo(String token) {
-        String key = "blacklist:" + token.toLowerCase();
+        String key = JWT_BLACKLIST_KEY + token.toLowerCase();
         boolean isBlacklisted = Boolean.TRUE.equals(redisTemplate.hasKey(key));
         if(isBlacklisted)
             throw new InvalidTokenException();
