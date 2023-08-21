@@ -57,5 +57,5 @@ spring:
             - Path=/api/v1/content/**
 
 auth-service:
-  base-url: https://auth-service/api/v1/auth
+  base-url: https://uptalent-auth/api/v1/auth
   public-key-url: ${auth-service.base-url}/public-key
