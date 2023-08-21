@@ -43,16 +43,16 @@ spring:
               factor: 2
               basedOnPreviousValue: true
       routes:
-        - id: auth-service
-          uri: lb://auth-service
+        - id: uptalent-auth
+          uri: lb://uptalent-auth
           predicates:
             - Path=/api/v1/auth/**
-        - id: account-service
-          uri: lb://account-service
+        - id: uptalent-account
+          uri: lb://uptalent-account
           predicates:
             - Path=/api/v1/account/**
-        - id: content-service
-          uri: lb://content-service
+        - id: uptalent-content
+          uri: lb://uptalent-content
           predicates:
             - Path=/api/v1/content/**
 
