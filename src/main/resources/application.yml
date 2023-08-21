@@ -2,13 +2,27 @@ eureka:
   client:
     service-url:
       defaultZone: ${EUREKA_HOST:http://localhost:8761/eureka}
+  instance:
+    hostname: "${spring.application.name}.azurewebsites.net"
+    secure-port-enabled: true
+    nonsecure-port-enabled: false
+    nonSecurePort: 80
+    securePort: 443
+    instanceId: "${eureka.instance.hostname}:${spring.application.name}:443"
+    statusPageUrl: "https://${eureka.hostname}:443/actuator/info"
+    healthCheckUrl: "https://${eureka.hostname}:443/actuator/health"
+    secureHealthCheckUrl: "https://${eureka.hostname}:443/actuator/health"
+
+management:
+  server:
+    port: "${server.port}"
 
 server:
   port: 8080
 
 spring:
   application:
-    name: api-gateway
+    name: uptalent-gateway
   data:
     redis:
       host: ${REDIS_HOST:}
