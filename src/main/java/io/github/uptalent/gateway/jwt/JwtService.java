@@ -3,6 +3,7 @@ package io.github.uptalent.gateway.jwt;
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
 import io.github.uptalent.gateway.converter.PublicKeyConverter;
+import io.github.uptalent.gateway.exception.BlockedAccountException;
 import io.github.uptalent.gateway.exception.InvalidTokenException;
 import io.github.uptalent.gateway.model.PublicKeyDTO;
 import io.micrometer.common.util.StringUtils;
@@ -41,10 +42,11 @@ public class JwtService {
             .expireAfterWrite(EXPIRED_TIME_DAYS, TimeUnit.DAYS)
             .maximumSize(MAX_CACHE_SIZE)
             .build();
-    private static final String JWT_BLACKLIST_KEY = "jwt_blacklist:";
+    private static final String JWT_BLACKLIST = "jwt_blacklist:";
+    private static final String BLOCKED_ACCOUNT = "blocked_account:";
 
     public Mono<Map<String, String>> validateTokenAndExtractUserInfo(String token) {
-        String key = JWT_BLACKLIST_KEY + token.toLowerCase();
+        String key = JWT_BLACKLIST + token.toLowerCase();
         boolean isBlacklisted = Boolean.TRUE.equals(redisTemplate.hasKey(key));
         if(isBlacklisted)
             throw new InvalidTokenException();
@@ -55,6 +57,7 @@ public class JwtService {
                         if (publicKey != null) {
                             Jwt jwt = jwtDecoder.decode(token);
                             if (StringUtils.isNotEmpty(jwt.getSubject()) && !isTokenExpired(jwt)) {
+                                validateBlockedAccount(jwt);
                                 return Mono.just(extractUserInfo(jwt));
                             }
                         }
@@ -63,6 +66,12 @@ public class JwtService {
                     }
                     return Mono.error(new InvalidTokenException());
                 });
+    }
+
+    private void validateBlockedAccount(Jwt jwt) {
+        String email = jwt.getClaimAsString("email");
+        if(Boolean.TRUE.equals(redisTemplate.hasKey(BLOCKED_ACCOUNT + email)))
+            throw new BlockedAccountException();
     }
 
     private Map<String, String> extractUserInfo(Jwt jwt) {
