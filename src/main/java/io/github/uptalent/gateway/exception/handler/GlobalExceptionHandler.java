@@ -1,6 +1,7 @@
 package io.github.uptalent.gateway.exception.handler;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import io.github.uptalent.gateway.exception.BlockedAccountException;
 import io.github.uptalent.gateway.exception.InvalidTokenException;
 import io.github.uptalent.gateway.model.ErrorResponse;
 import io.github.uptalent.gateway.exception.ExceptionConstant;
@@ -35,6 +36,8 @@ public class GlobalExceptionHandler implements WebExceptionHandler {
     public Mono<Void> handle(@NonNull ServerWebExchange exchange, @NonNull Throwable ex) {
         if (ex instanceof InvalidTokenException) {
             return error(exchange, HttpStatus.UNAUTHORIZED, ex.getMessage());
+        } else if (ex instanceof BlockedAccountException) {
+            return error(exchange, HttpStatus.FORBIDDEN, ex.getMessage());
         } else if ((ex instanceof ResponseStatusException
                 && ((ResponseStatusException) ex).getStatusCode() == HttpStatus.NOT_FOUND)
                 || ex instanceof NotFoundException) {

@@ -14,6 +14,8 @@ import reactor.core.publisher.Mono;
 
 import java.util.Map;
 
+import static io.github.uptalent.gateway.jwt.JwtConstants.*;
+
 @Component
 @Slf4j
 @RequiredArgsConstructor
@@ -40,8 +42,8 @@ public class JwtValidationFilter implements GlobalFilter {
     private Mono<Void> updateRequestAndChainFilter(ServerWebExchange exchange, GatewayFilterChain chain, Map<String, String> userInfo) {
         ServerHttpRequest updatedRequest = exchange.getRequest().mutate()
                 .headers(headers -> {
-                    headers.set(JwtConstants.USER_ID_KEY, userInfo.get(JwtConstants.USER_ID_KEY));
-                    headers.set(JwtConstants.USER_ROLE_KEY, userInfo.get(JwtConstants.USER_ROLE_KEY));
+                    headers.set(USER_ID_KEY, userInfo.get(USER_ID_KEY));
+                    headers.set(USER_ROLE_KEY, userInfo.get(USER_ROLE_KEY));
                 })
                 .build();
 
